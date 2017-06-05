@@ -199,3 +199,18 @@ message XMsg {
 service Phi {
     rpc sendmsg(XMsg) returns (PluginWriteReply) {}
 }
+
+message AdmCmd {
+    string cmd = 1;
+    repeated string args = 2;
+}
+
+message AdmCmdReply {
+    int32 code = 1;
+    string info = 2;
+    XRowSet rowset = 3;
+}
+
+service DgAdmin {
+    rpc runcmd(AdmCmd) returns (AdmCmdReply) {}
+}
