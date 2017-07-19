@@ -45,7 +45,7 @@ func (dg *Deepgreen) Connect() error {
 	rows, err := dg.Conn.Query("select oid, typname from pg_type")
 	if err != nil {
 		dg.Conn.Close()
-		return fmt.Errorf("Cannot retrieve types")
+		return fmt.Errorf("Cannot retrieve types, err %s", err.Error())
 	}
 	defer rows.Close()
 
