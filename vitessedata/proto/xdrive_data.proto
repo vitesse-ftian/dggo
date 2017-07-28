@@ -46,6 +46,8 @@ message RmgrInfo {
     string       rpath = 3;
     KeyValueList conf = 4;
     string       pluginop = 5;
+	int32		 frag_id = 6;
+	int32        frag_cnt = 7;
 }
 
 enum SpqType {
@@ -171,8 +173,6 @@ message PluginWriteRequest {
     FileSpec filespec = 1;
     repeated ColumnDesc columndesc = 2;
     XRowSet rowset = 3;
-	int32 frag_id = 4;
-	int32 frag_cnt = 5;
 }
 
 message WriteReply {
