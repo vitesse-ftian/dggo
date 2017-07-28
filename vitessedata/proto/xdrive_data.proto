@@ -163,12 +163,16 @@ message WriteRequest {
     FileSpec filespec = 1;
     repeated ColumnDesc columndesc = 2;
     repeated PageData page = 3;
+	int32 frag_id = 4;
+	int32 frag_cnt = 5;
 }
 
 message PluginWriteRequest {
     FileSpec filespec = 1;
     repeated ColumnDesc columndesc = 2;
     XRowSet rowset = 3;
+	int32 frag_id = 4;
+	int32 frag_cnt = 5;
 }
 
 message WriteReply {
