@@ -5,7 +5,8 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
-	"wetest/dglog"
+
+	"github.com/vitesse-ftian/dggo/vitessedata/dglog"
 )
 
 type ExecResult struct {
