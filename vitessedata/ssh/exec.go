@@ -30,6 +30,16 @@ func findDg() string {
 
 var g_dgbin = findDg()
 
+func DgBin() string {
+	return g_dgbin
+}
+
+func BinAbs(bin string) string {
+	p, err := exec.Command("sh", "-c", "which " + bin).Output()
+	dglog.FatalErr(err, "Cannot find path of " + bin) 
+	return strings.TrimSpace(string(p))
+}
+
 func ExecAnyError(res []ExecResult) error {
 	for _, r := range res {
 		if r.Err != nil {
