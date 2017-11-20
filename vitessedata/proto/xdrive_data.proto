@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 package xdrive;
+option java_package = "com.vitessedata.xdrive";
 
 message ColumnDesc {
     string     name = 1;
@@ -157,14 +158,21 @@ message PluginSizeMetaReply {
     SizeMetaReply sizemeta = 3;
 }
 
-message PageData {
-    bytes data = 1;
-}
 
+// one note on WriteRequest.
+// Suppose we are writing 2 columns:
+// Message 1: must have filespec and columndesc, and no data
+// Message 2: data only, 4 byte length of page 1 (page of column 1)
+// Message 3..n: data only, page 1 in 16kb chunks
+// Message n+1: data only, 4 byte length of page 2 (page of column 2)
+// Message n+2..m: data only, page 2 in 16kb chunks
+// Message m+1: data only, 4 byte length of page 1  (another page of column 1)
+// Message m+1 .. k: dat only, page 1 in 16kb chunks
+// ...
 message WriteRequest { 
     FileSpec filespec = 1;
     repeated ColumnDesc columndesc = 2;
-    repeated PageData page = 3;
+    bytes data = 3;
 	int32 frag_id = 4;
 	int32 frag_cnt = 5;
 }
@@ -188,8 +196,9 @@ message XMsg {
         EOS = 0;
         EOB = 1;
         CONTINUE = 2;
-        BSPSYNC = 1000;
-        BSPDATA = 1001;
+        SYNC = 1000;
+		BSPSYNC = 1001;
+		BSPDATA = 1002;
     }
 
     string name = 1;
@@ -197,24 +206,4 @@ message XMsg {
     int32 code = 3;
     string info = 4;
     XRowSet rowset = 5;
-}
-
-
-service Phi {
-    rpc sendmsg(XMsg) returns (PluginWriteReply) {}
-}
-
-message AdmCmd {
-    string cmd = 1;
-    repeated string args = 2;
-}
-
-message AdmCmdReply {
-    int32 code = 1;
-    string info = 2;
-    XRowSet rowset = 3;
-}
-
-service DgAdmin {
-    rpc runcmd(AdmCmd) returns (AdmCmdReply) {}
 }
