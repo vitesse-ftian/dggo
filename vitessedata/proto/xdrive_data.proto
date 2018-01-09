@@ -73,6 +73,9 @@ enum SpqType {
     TIME_MICROS      = 0x040004;        /* protobuf type int64 */
     TIMESTAMP_MICROS = 0x050004;        /* protobuf type int64 */
     JSON             = 0x060009;        /* protobuf type string */
+    NUMERIC          = 0x070009;        /* protobuf type string */
+    TIMESTAMPTZ_MILLIS = 0x080004;        /* protobuf type int64 */
+    TIMESTAMPTZ_MICROS = 0x090004;        /* protobuf type int64 */
 }
 
 message ReadRequest {
