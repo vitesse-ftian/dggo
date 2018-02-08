@@ -41,14 +41,18 @@ message KeyValueList {
     repeated KeyValue kv = 1;
 }
 
-message RmgrInfo {
-    string       scheme = 1;
-    string       format = 2;
-    string       rpath = 3;
-    KeyValueList conf = 4;
-    string       pluginop = 5;
-	int32		 frag_id = 6;
-	int32        frag_cnt = 7;
+message PathSpec {
+    string path = 1;
+}
+
+message OpSpec {
+    string op = 1;
+}
+
+message OpStatus {
+    int32 errcode = 1;
+    string errmsg = 2;
+	int32 flag = 3;
 }
 
 enum SpqType {
@@ -78,6 +82,60 @@ enum SpqType {
     TIMESTAMPTZ_MICROS = 0x090004;        /* protobuf type int64 */
 }
 
+/*
+ * XCol and XRowSet 
+ */
+message XCol {
+    string colname = 1;
+    int32 nrow = 2;
+    repeated bool nullmap = 3;
+    repeated string sdata = 4;
+    repeated int32 i32data = 5;
+    repeated int64 i64data = 6;
+    repeated float f32data = 7;
+    repeated double f64data = 8;
+}
+
+message XRowSet {
+    int32 tag       = 1;
+    int32 round     = 2;
+    repeated XCol columns = 3;
+}
+
+message XMsg {
+    enum XMsgFlag {
+        EOS = 0;
+        EOB = 1;
+        CONTINUE = 2;
+        SYNC = 1000;
+                BSPSYNC = 1001;
+                BSPDATA = 1002;
+    }
+
+    string name = 1;
+    XMsgFlag xflag = 2;
+    int32 code = 3;
+    string info = 4;
+    XRowSet rowset = 5;
+}
+
+/*
+ * Read/Sample: Suppose we read two columns,
+ * 
+ * dg -> xdrive: OpSpec
+ * xdrive -> dg: OpStatus
+ * dg -> xdrive: ReadRequest/SampleRequest
+ * xdrive -> dg: DataReply/XColDataReply col(page) 1
+ * xdrive -> dg: DataReply/XColDataReply col(page) 2
+ * xdrive -> dg: DataReply/XColDataReply col(page) 1
+ * xdrive -> dg: DataReply/XColDataReply col(page) 2
+ * ...
+ * xdrive -> dg: DataReply/XColDataReply col(page) 1
+ * xdrive -> dg: DataReply/XColDataReply col(page) 2
+ * xdrive -> dg: DataReply/XColDataReply of 0-byte data.
+ *
+ * At anytime, client can send an DataReply/XColDataReply of error.
+ */
 message ReadRequest {
     // Which file(s)
     FileSpec   filespec = 1;
@@ -112,32 +170,25 @@ message SampleRequest {
 }
 
 message DataReply {
-    bytes  data = 1;
-}
-
-message XCol {
-    string colname = 1; 
-    int32 nrow = 2;
-    repeated bool nullmap = 3;
-    repeated string sdata = 4;
-    repeated int32 i32data = 5;
-    repeated int64 i64data = 6;
-    repeated float f32data = 7;
-    repeated double f64data = 8;
-}
-
-message XRowSet {
-    int32 tag       = 1;
-    int32 round     = 2;
-    repeated XCol columns = 3;
-}
-
-message PluginDataReply {
-    int32 errcode = 1;
+    int32  errcode = 1;
     string errmsg = 2;
-    XRowSet rowset = 3;
+    bytes  data = 3;
 }
 
+message XColDataReply {
+	int32 errcode = 1;
+	string errmsg = 2;
+	XCol data = 3;
+}
+
+/*
+ * SizeMeta 
+ * 
+ * dg -> xdrive: OpSpec
+ * xdrive -> dg: OpStatus
+ * dg -> xdrive: SizeMetaRequest 
+ * xdrive -> dg: SizeMetaReply 
+ */
 message SizeMetaRequest {
     // Which file(s)
     FileSpec  filespec = 1;
@@ -151,62 +202,46 @@ message SizeMetaRequest {
 }
      
 message SizeMetaReply {
-    int64 nrow = 1;
-    int64 nbyte = 2;
-}
-
-message PluginSizeMetaReply {
     int32 errcode = 1;
     string errmsg = 2;
-    SizeMetaReply sizemeta = 3;
+    int64 nrow = 3;
+    int64 nbyte = 4;
 }
 
-
-// one note on WriteRequest.
-// Suppose we are writing 2 columns:
-// Message 1: must have filespec and columndesc, and no data
-// Message 2: data only, 4 byte length of page 1 (page of column 1)
-// Message 3..n: data only, page 1 in 16kb chunks
-// Message n+1: data only, 4 byte length of page 2 (page of column 2)
-// Message n+2..m: data only, page 2 in 16kb chunks
-// Message m+1: data only, 4 byte length of page 1  (another page of column 1)
-// Message m+1 .. k: dat only, page 1 in 16kb chunks
-// ...
+/*
+ * Write: Again, suppose we are writing two columns
+ * 
+ * dg -> xdrive: OpSpec
+ * xdrive -> dg: OpStatus
+ * dg -> xdrive: WriteRequest 
+ * xdrive -> dg: WriteReply
+ * dg -> xdrive: WriteData/XCol of page(col) 1
+ * xdrive -> dg: WriteReply 
+ * dg -> xdrive: WriteData/XCol of page(col) 2
+ * xdrive -> dg: WriteReply 
+ * ...
+ * ...
+ * dg -> xdrive: WriteData/XCol of page(col) 1
+ * xdrive -> dg: WriteReply 
+ * dg -> xdrive: WriteData/XCol of page(col) 2
+ * xdrive -> dg: WriteReply 
+ * dg -> xdrive: WriteData with 0 byte
+ * xdrive -> dg: WriteReply
+ *
+ * If the final WriteReply has no error then the write succeeded.
+ */
 message WriteRequest { 
     FileSpec filespec = 1;
     repeated ColumnDesc columndesc = 2;
-    bytes data = 3;
-	int32 frag_id = 4;
-	int32 frag_cnt = 5;
+    int32    frag_id = 3;
+    int32    frag_cnt = 4;
 }
 
-message PluginWriteRequest {
-    FileSpec filespec = 1;
-    repeated ColumnDesc columndesc = 2;
-    XRowSet rowset = 3;
+message WriteData {
+    bytes data = 1;
 }
 
 message WriteReply {
-}
-
-message PluginWriteReply {
     int32 errcode = 1;
     string errmsg = 2;
-}
-    
-message XMsg {
-    enum XMsgFlag {
-        EOS = 0;
-        EOB = 1;
-        CONTINUE = 2;
-        SYNC = 1000;
-		BSPSYNC = 1001;
-		BSPDATA = 1002;
-    }
-
-    string name = 1;
-    XMsgFlag xflag = 2;
-    int32 code = 3;
-    string info = 4;
-    XRowSet rowset = 5;
 }

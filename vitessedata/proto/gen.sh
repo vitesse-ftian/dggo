@@ -1,1 +1,1 @@
-protoc --go_out=plugins=grpc:./xdrive -I . xdrive_data.proto 
+protoc --go_out=plugins=grpc:./xdrive -I . xdrive2.proto 
