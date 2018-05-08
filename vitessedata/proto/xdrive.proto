@@ -152,6 +152,9 @@ message ReadRequest {
     // Fragment
     int32    frag_id    = 5;
     int32    frag_cnt   = 6;
+
+	// ts
+	int64	ts = 7;
 }
 
 message SampleRequest {
@@ -235,6 +238,8 @@ message WriteRequest {
     repeated ColumnDesc columndesc = 2;
     int32    frag_id = 3;
     int32    frag_cnt = 4;
+
+	int64	ts = 5;
 }
 
 message WriteData {
