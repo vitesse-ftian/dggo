@@ -25,11 +25,13 @@ func ProtostreamRead(f *os.File, pb proto.Message) error {
 	}
 
 	buf := make([]byte, msgsz)
-	rsz, err := f.Read(buf)
-
-	if int32(rsz) != msgsz {
-		// don't check err, because EOF is a real error here.
-		return fmt.Errorf("delim read short read msg")
+	rsz := int32(0)
+	for rsz < msgsz {
+		looprsz, err := f.Read(buf[rsz:])
+		if err != nil {
+			return err
+		}
+		rsz += int32(looprsz)
 	}
 
 	err = proto.Unmarshal(buf, pb)
