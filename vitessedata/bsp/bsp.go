@@ -64,6 +64,10 @@ func (bsp *Bsp) GlobalStep() int64 {
 	return bsp.globalStep
 }
 
+func (bsp *Bsp) Ncli() int64 {
+	return bsp.ncli
+}
+
 func (bsp *Bsp) Send(route int64, msg *xdrive.XMsg) {
 	msgba, err := proto.Marshal(msg)
 	if err != nil {
@@ -101,6 +105,10 @@ func (bsp *Bsp) Recv() *xdrive.XMsg {
 	}
 
 	var xmsg xdrive.XMsg
+	if msg == nil {
+		return nil
+	}
+
 	err = proto.Unmarshal(msg.([]byte), &xmsg)
 	if err != nil {
 		panic(err)
