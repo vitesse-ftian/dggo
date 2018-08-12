@@ -8,6 +8,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/olekukonko/tablewriter"
+	"github.com/vitesse-ftian/dggo/vitessedata/dglog"
 	"io"
 	"strconv"
 	"strings"
@@ -158,17 +159,17 @@ func (t *xtableCommon) Sql() (string, error) {
 func (t *xtableCommon) Explain() error {
 	sql, err := t.Sql()
 	if err != nil {
-		Log("=======EXPLAIN SQL ============================================")
-		Log("SQL: %s", sql)
-		Log("=======EXPLAIN SQL Error ======================================")
-		LogErr(err, "Explain error.")
-		Log("=======EXPALIN SQL End ========================================")
+		dglog.Log("=======EXPLAIN SQL ============================================")
+		dglog.Log("SQL: %s", sql)
+		dglog.Log("=======EXPLAIN SQL Error ======================================")
+		dglog.LogErr(err, "Explain error.")
+		dglog.Log("=======EXPALIN SQL End ========================================")
 		return err
 	}
 
 	rows, err := t.dg.Conn.Query("explain verbose " + sql)
 	if err != nil {
-		LogErr(err, "Explain error.")
+		dglog.LogErr(err, "Explain error.")
 		return err
 	}
 	defer rows.Close()
