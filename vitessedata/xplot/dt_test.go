@@ -16,16 +16,16 @@ func TestFuncData(t *testing.T) {
 	}
 
 	fx := Function{
-		Name: "x",
+		Name: "sin(x)",
 		F: func(x float64) float64 {
-			return x
+			return math.Sin(x)
 		},
 	}
 
 	fxplus := Function{
-		Name: "x+1",
+		Name: "cos(x+1)",
 		F: func(x float64) float64 {
-			return x + 1.0
+			return math.Cos(x + 1.0)
 		},
 		Color:  tm.RED,
 		Symbol: "x",
