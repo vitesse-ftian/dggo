@@ -9,36 +9,38 @@ import (
 
 func TestFuncData(t *testing.T) {
 	f1 := Function{
-		"f1",
-		func(x float64) float64 {
+		Name: "f1",
+		F: func(x float64) float64 {
 			return 1.0
 		},
 	}
 
 	fx := Function{
-		"x",
-		func(x float64) float64 {
+		Name: "x",
+		F: func(x float64) float64 {
 			return x
 		},
 	}
 
 	fxplus := Function{
-		"x+1",
-		func(x float64) float64 {
+		Name: "x+1",
+		F: func(x float64) float64 {
 			return x + 1.0
 		},
+		Color:  tm.RED,
+		Symbol: "x",
 	}
 
 	t.Run("f", func(t *testing.T) {
 		fdt := NewFuncDataTable(0, 10, 0.1)
 		fdt.AddFunc(f1).AddFunc(fx).AddFunc(fxplus)
 
-		fmt.Printf("Functions Datatable, %dx%d.\n", fdt.NRow(), fdt.NCol())
-		fmt.Printf("Functions Datatable, XLables, %v.\n", fdt.XLabels())
+		fmt.Printf("Functions Datatable.\n", fdt.NCol())
 
 		for c := 0; c < fdt.NCol(); c++ {
-			fmt.Printf("%d-th Function, name %s, type %s.\n", c, fdt.ColumnName(c), fdt.ColumnType(c))
-			data := fdt.ColData(c)
+			col := fdt.Col(c)
+			fmt.Printf("%d-th Function, name %s, color %d, symbol %s.\n", c, col.Name(), col.Color(), col.Symbol())
+			data := col.Data()
 			fmt.Printf("first 3 values %v, last 3 values %v.\n", data[:3], data[len(data)-3:])
 		}
 	})

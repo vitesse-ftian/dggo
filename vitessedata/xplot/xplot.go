@@ -7,17 +7,51 @@ package xplot
 import (
 	"fmt"
 	"github.com/buger/goterm"
+	"math"
 	"strings"
 )
 
-type Canvas struct {
-	width  int
-	height int
-	buf    [][]string
+func rangeToLabels(xbegin, xend float64, nlabel int) []string {
+	step := (xend - xbegin) / float64(nlabel-1)
+	var ret []string
+	for i := 0; i < nlabel; i++ {
+		ret = append(ret, fmt.Sprintf("%.1f", xbegin+step*float64(i)))
+	}
+	return ret
+}
 
-	paddingLeft  int
-	paddingRight int
-	paddingY     int
+func dataRange(data []float64) (minY, maxY float64) {
+	minY = math.Inf(1)
+	maxY = math.Inf(-1)
+	for _, v := range data {
+		minY = math.Min(minY, v)
+		maxY = math.Max(maxY, v)
+	}
+	return
+}
+
+func dtXLabels(dt DataTable, n int) []string {
+	col := dt.Col(0)
+	if col.Text() != nil {
+		return col.Text()
+	} else {
+		minv, maxv := dataRange(col.Data())
+		return rangeToLabels(minv, maxv, n)
+	}
+}
+
+func dtYRange(dt DataTable) (minY, maxY float64) {
+	minY = math.Inf(1)
+	maxY = math.Inf(-1)
+	for i := 1; i < dt.NCol(); i++ {
+		col := dt.Col(i)
+		if col.Data() != nil {
+			low, high := dataRange(col.Data())
+			minY = math.Min(minY, low)
+			maxY = math.Max(maxY, high)
+		}
+	}
+	return
 }
 
 func min(x, y int) int {
@@ -32,6 +66,16 @@ func max(x, y int) int {
 		return x
 	}
 	return y
+}
+
+type Canvas struct {
+	width  int
+	height int
+	buf    [][]string
+
+	paddingLeft  int
+	paddingRight int
+	paddingY     int
 }
 
 func NewCanvasSize(ww, hh int) (*Canvas, error) {
@@ -93,9 +137,9 @@ func (c *Canvas) writeTextLeft(x, y int, s string) {
 }
 
 func (c *Canvas) drawAxis(dt DataTable) {
-	xl := dt.XLabels()
-	miny, maxy := DataTableYRange(dt)
-	yl := RangeToLabels(miny, maxy, c.height-c.paddingY)
+	xl := dtXLabels(dt, 5)
+	miny, maxy := dtYRange(dt)
+	yl := rangeToLabels(miny, maxy, c.height-c.paddingY)
 
 	c.paddingLeft = len(xl[0])/2 + 1
 	c.paddingRight = len(xl[len(xl)-1])/2 + 1
