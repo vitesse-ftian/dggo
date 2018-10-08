@@ -4,10 +4,10 @@ import (
 	"encoding/binary"
 	"fmt"
 	"github.com/golang/protobuf/proto"
-	"os"
+	"io"
 )
 
-func ProtostreamRead(f *os.File, pb proto.Message) error {
+func ProtostreamRead(f io.Reader, pb proto.Message) error {
 	var magic int32
 	err := binary.Read(f, binary.LittleEndian, &magic)
 	if err != nil {
@@ -38,7 +38,7 @@ func ProtostreamRead(f *os.File, pb proto.Message) error {
 	return err
 }
 
-func ProtostreamWrite(f *os.File, pb proto.Message) error {
+func ProtostreamWrite(f io.Writer, pb proto.Message) error {
 	msg, err := proto.Marshal(pb)
 	if err != nil {
 		return err
@@ -69,12 +69,12 @@ func ProtostreamWrite(f *os.File, pb proto.Message) error {
 	return nil
 }
 
-func ReadXMsg(f *os.File) (*XMsg, error) {
+func ReadXMsg(f io.Reader) (*XMsg, error) {
 	var msg XMsg
 	err := ProtostreamRead(f, &msg)
 	return &msg, err
 }
 
-func WriteXMsg(f *os.File, msg *XMsg) error {
+func WriteXMsg(f io.Writer, msg *XMsg) error {
 	return ProtostreamWrite(f, msg)
 }
