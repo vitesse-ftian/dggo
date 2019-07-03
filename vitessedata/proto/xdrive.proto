@@ -3,6 +3,41 @@ syntax = "proto3";
 package xdrive;
 option java_package = "com.vitessedata.xdrive";
 
+enum SpqType {
+    UNKNOWN  = 0;
+    BOOL     = 0x0001;      /* protobuf type int32 */
+    INT16    = 0x0002;      /* protobuf type int32 */
+    INT32    = 0x0003;      /* protobuf type int32 */
+    INT64    = 0x0004;      /* protobuf type int64 */
+    INT128   = 0x0005;      /* protobuf type int64 x2 */ 
+    FLOAT    = 0x0006;      /* protobuf type float */
+    DOUBLE   = 0x0007;      /* protobuf type double */
+    /* BYTEA    = 0x0008;   not supported. */
+    CSTR     = 0x0009;      /* protobuf type string */
+    DEC64    = 0x000A;      /* protobuf type int64 */
+    DEC128   = 0x000B;      /* protobuf type int64 x2 */
+	UUID     = 0x000C;		/* protobuf type int64 x2 */
+	INTERVAL = 0x000D;		/* protobuf type int64 x2 */
+
+	VARLENA	 = 0x000E;		/* postgres varlena type */
+
+    /* INTERNAL = 0xFFFF; */
+
+    DATE             = 0x010003;        /* protobuf type int32 */
+    TIME_MILLIS      = 0x020003;        /* protobuf type int32 */
+    TIMESTAMP_MILLIS = 0x030004;        /* protobuf type int64 */
+    TIME_MICROS      = 0x040004;        /* protobuf type int64 */
+    TIMESTAMP_MICROS = 0x050004;        /* protobuf type int64 */
+    JSON             = 0x060009;        /* protobuf type string */
+    NUMERIC          = 0x070009;        /* protobuf type string */
+    TIMESTAMPTZ_MILLIS	= 0x080004;        /* protobuf type int64 */
+    TIMESTAMPTZ_MICROS	= 0x090004;        /* protobuf type int64 */
+	MACADDR				= 0x0A000E;		   /* macaddr, protobuf typ varlena */
+	INET				= 0x0B000E;		   /* inet, protobuf typ varlena */
+
+	ARRAY               = 0x10000000;      /* Array! */
+}
+
 message ColumnDesc {
     string     name = 1;
     int32      type = 2;       // use spq column type
@@ -55,33 +90,6 @@ message OpStatus {
 	int32 flag = 3;
 }
 
-enum SpqType {
-    UNKNOWN  = 0;
-    BOOL     = 0x0001;      /* protobuf type int32 */
-    INT16    = 0x0002;      /* protobuf type int32 */
-    INT32    = 0x0003;      /* protobuf type int32 */
-    INT64    = 0x0004;      /* protobuf type int64 */
-    INT128   = 0x0005;      /* protobuf type int64 x2 */ 
-    FLOAT    = 0x0006;      /* protobuf type float */
-    DOUBLE   = 0x0007;      /* protobuf type double */
-    /* BYTEA    = 0x0008;   not supported. */
-    CSTR     = 0x0009;      /* protobuf type string */
-    DEC64    = 0x000A;      /* protobuf type int64 */
-    DEC128   = 0x000B;      /* protobuf type int64 x2 */
-    /* UTF8     = 0x000D,*/
-    /* INTERNAL = 0xFFFF; */
-
-    DATE             = 0x010003;        /* protobuf type int32 */
-    TIME_MILLIS      = 0x020003;        /* protobuf type int32 */
-    TIMESTAMP_MILLIS = 0x030004;        /* protobuf type int64 */
-    TIME_MICROS      = 0x040004;        /* protobuf type int64 */
-    TIMESTAMP_MICROS = 0x050004;        /* protobuf type int64 */
-    JSON             = 0x060009;        /* protobuf type string */
-    NUMERIC          = 0x070009;        /* protobuf type string */
-    TIMESTAMPTZ_MILLIS = 0x080004;        /* protobuf type int64 */
-    TIMESTAMPTZ_MICROS = 0x090004;        /* protobuf type int64 */
-}
-
 /*
  * XCol and XRowSet 
  */
@@ -94,6 +102,7 @@ message XCol {
     repeated int64 i64data = 6;
     repeated float f32data = 7;
     repeated double f64data = 8;
+	repeated bytes bindata = 9;
 }
 
 message XRowSet {
@@ -155,6 +164,11 @@ message ReadRequest {
 
 	// ts
 	int64	ts = 7;
+
+    // Query 
+	bytes query = 8;
+	int32 bloomsz = 9;
+	bytes bloom = 10;
 }
 
 message SampleRequest {
